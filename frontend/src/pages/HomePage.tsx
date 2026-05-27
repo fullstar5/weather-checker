@@ -322,7 +322,7 @@ export default function HomePage() {
             </Button>
 
             <FormControl size="small" fullWidth>
-              <InputLabel id="frequency-seconds-label">Frequency</InputLabel>
+              <InputLabel id="frequency-seconds-label">Broadcast Frequency</InputLabel>
               <Select
                 labelId="frequency-seconds-label"
                 value={preferences.frequencySeconds}

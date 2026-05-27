@@ -45,6 +45,14 @@ const formatHourlyTime = (unixSeconds: number, timezoneOffsetSeconds = 0): strin
   return `${hh}:${mm}`;
 };
 
+
+/**
+ * 
+ * @param city 
+ * @param weatherApiKey 
+ * @param upcomingHours 
+ * @returns current && upcoming weather info
+ */
 export const getCurrentAndUpcomingForecast = async (
   city: string,
   weatherApiKey: string,
@@ -136,6 +144,13 @@ type OpenWeatherGeocodeResponse = Array<{
   lon: number;
 }>;
 
+
+/**
+ * 
+ * @param city 
+ * @param weatherApiKey 
+ * @returns city coordinates
+ */
 export const getCityCoordinates = async (
   city: string,
   weatherApiKey: string
