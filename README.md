@@ -83,9 +83,7 @@ Current implementation intentionally reduces API calls:
 - Change On `Broadcast Frequency` : WILL NOT fetch weather, only change replay interval
 - Message loops on `Broadcast Frequency`
 
-This means city/upcoming/refresh cause a new weather fetch, but frequency-only changes do not.
+## Note 
 
-## Notes
-
-- OpenWeather forecast endpoint is 3-hour granularity (`2.5/forecast`), so upcoming entries are stepped by 3 hours.
-- Data is in-memory for challenge/demo purposes and resets on server restart.
+- OpenWeather 2.5 API will only return 1 data row for every 3 hours, which means if select 3 for `Upcoming hours` only 1 data row will be returned, 2 data rows for 6 of `Upcoming hours`. The reason to not use 3.0 API is because technical issue with OpenWeather caused failure to subscribe 3.0
+- All data will kept in memory, means will be cleaned once server restarts.
