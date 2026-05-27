@@ -9,6 +9,8 @@ import {
   Stack,
   TextField,
   Typography,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -44,8 +46,24 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const hasJoinedRef = useRef(false);
 
-  const showMessage = (_severity: 'success' | 'error' | 'info', message: string) => {
+  const [popup, setPopup] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'info' | 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  const showMessage = (severity: 'success' | 'error' | 'info', message: string) => {
     setTickerQueue((prev) => [...prev, message]);
+
+    setPopup({
+      open: true,
+      message,
+      severity,
+    });
   };
 
   const clearTickerQueue = () => {
@@ -398,6 +416,21 @@ export default function HomePage() {
           </Stack>
         </Paper>
       </Stack>
+      <Snackbar
+          open={popup.open}
+          autoHideDuration={2200}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          onClose={() => setPopup((prev) => ({ ...prev, open: false }))}
+        >
+          <Alert
+            severity={popup.severity}
+            variant="filled"
+            onClose={() => setPopup((prev) => ({ ...prev, open: false }))}
+            sx={{ width: '100%' }}
+          >
+            {popup.message}
+          </Alert>
+      </Snackbar>
     </Box>
   );
 }
