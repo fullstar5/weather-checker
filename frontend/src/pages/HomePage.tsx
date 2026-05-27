@@ -16,10 +16,11 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import { geocodeCityApi, getWeatherApi } from '../api/weatherApi';
 import type { WeatherData } from '../types/weather';
-import type { PushPreferences, WeatherMessagePayload } from '../types/realtime';
+import type { PushPreferences, WeatherMessagePayload, ChatMessagePayload} from '../types/realtime';
 import { clearAuth, getUsername } from '../utils/authStorage';
 import { disconnectSocket, getSocket } from '../socket/client';
 import WeatherMap from '../components/WeatherMap';
+import { sendMessageApi } from '../api/messageApi';
 
 const FREQUENCY_OPTIONS = [10, 30, 60, 120];
 const UPCOMING_HOURS_OPTIONS = [3, 6, 9, 12, 24];
@@ -46,6 +47,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const hasJoinedRef = useRef(false);
 
+
+  // popup for snackbar
   const [popup, setPopup] = useState<{
     open: boolean;
     message: string;
@@ -55,6 +58,9 @@ export default function HomePage() {
     message: '',
     severity: 'info',
   });
+
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessage, setChatMessage] = useState<ChatMessagePayload[]>([]); 
 
   const showMessage = (severity: 'success' | 'error' | 'info', message: string) => {
     setTickerQueue((prev) => [...prev, message]);
@@ -130,6 +136,10 @@ export default function HomePage() {
       );
     };
 
+    const handleChatMessage = (payload: ChatMessagePayload) => {
+      setChatMessage((prev) => [...prev, payload]);
+    };
+
     const handleSubscriptionError = (payload: { message?: string }) => {
       showMessage('error', payload.message ?? 'Subscription error');
     };
@@ -139,11 +149,14 @@ export default function HomePage() {
     };
 
     socket.on('weather-message', handleWeatherMessage);
+    socket.on('chat-message', handleChatMessage);
     socket.on('subscription-error', handleSubscriptionError);
     socket.on('weather-error', handleWeatherError);
 
+
     return () => {
       socket.off('weather-message', handleWeatherMessage);
+      socket.off('chat-message', handleChatMessage);
       socket.off('subscription-error', handleSubscriptionError);
       socket.off('weather-error', handleWeatherError);
       socket.emit('leave-city');
@@ -179,6 +192,7 @@ export default function HomePage() {
 
   useEffect(() => {
     clearTickerQueue();
+    setChatMessage([]);
     const socket = getSocket();
     socket.emit('join-city', {
       city,
@@ -194,6 +208,25 @@ export default function HomePage() {
     const socket = getSocket();
     socket.emit('refresh-weather');
   };
+
+  const handleSendChatMessage = async() => {
+    const text = chatInput.trim();
+    if (!text) return
+
+    const username = getUsername() ?? 'failed to display username';
+
+    try {
+      await sendMessageApi({
+        username,
+        city,
+        message:text,
+      });
+      setChatInput('');
+    }
+    catch {
+      showMessage('error', 'Failed to send message');
+    }
+  }
 
   useEffect(() => {
     if (!hasJoinedRef.current) {
@@ -413,6 +446,53 @@ export default function HomePage() {
                 </Paper>
               ))}
             </Box>
+
+            <Paper sx={{ p: 1.5, borderRadius: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                City Chat Room
+              </Typography>
+              <Box
+                sx={{
+                  maxHeight: 180,
+                  overflowY: 'auto',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 1,
+                  p: 1,
+                  mb: 1,
+                  backgroundColor: '#fff',
+                }}
+              >
+                {chatMessage.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No messages yet for this city.
+                  </Typography>
+                ) : (
+                  chatMessage.map((item, idx) => (
+                    <Typography key={`${item.sender}-${idx}`} variant="body2" sx={{ mb: 0.5 }}>
+                      <strong>{item.sender}</strong>: {item.message}
+                    </Typography>
+                  ))
+                )}
+              </Box>
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="Type a message..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handleSendChatMessage();
+                    }
+                  }}
+                />
+                <Button variant="contained" onClick={() => void handleSendChatMessage()}>
+                  Send
+                </Button>
+              </Stack>
+            </Paper>
           </Stack>
         </Paper>
       </Stack>

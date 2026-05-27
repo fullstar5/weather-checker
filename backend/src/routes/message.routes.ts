@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { pushWeatherMessage } from '../controllers/message.controller';
+import { pushWeatherMessage, pushChatMessage} from '../controllers/message.controller';
 
 const messageRouter = Router();
 
 messageRouter.post('/push-weather', pushWeatherMessage);
+messageRouter.post('/chat', pushChatMessage);
 
 export default messageRouter;
