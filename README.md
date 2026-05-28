@@ -76,8 +76,7 @@ Current implementation intentionally reduces API calls:
 - Change On `Upcoming Hours`: clear cache, fetch fresh weather once, emit
 - Change On `refresh weather`: clear cache, fetch fresh weather once, emit
 - Change On `Broadcast Frequency` : WILL NOT fetch weather, only change replay interval
-- Message loops on `Broadcast Frequency`
-- Change `city` will clear the current chat history
+- Weather messages loop on `Broadcast Frequency`
 
 
 ## Note 
