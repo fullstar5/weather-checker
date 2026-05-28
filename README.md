@@ -81,6 +81,6 @@ Current implementation intentionally reduces API calls:
 
 ## Note 
 
-- OpenWeather 2.5 API will only return 1 data row for every 3 hours, which means if select 3 for `Upcoming hours` only 1 data row will be returned, 2 data rows for 6 of `Upcoming hours`. The reason to not use 3.0 API is because technical issue with OpenWeather caused failure to subscribe 3.0
+- OpenWeather 2.5 API will only return 1 data row for every 3 hours, which means if select 3 for `Upcoming hours` only 1 data row will be returned, 2 data rows for 6 of `Upcoming hours`. The reason to not use 3.0 API is because technical issue with OpenWeather caused failure to subscribe 3.0 (
 - All data will kept in-memory, means will be cleaned once server restarts
 - To test live chat room function, please open multiple browser tabs and register new users
