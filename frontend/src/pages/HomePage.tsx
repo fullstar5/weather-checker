@@ -21,6 +21,7 @@ import { clearAuth, getUsername } from '../utils/authStorage';
 import { disconnectSocket, getSocket } from '../socket/client';
 import WeatherMap from '../components/WeatherMap';
 import { sendMessageApi } from '../api/messageApi';
+import { loadUserCityChat, saveUserCityChat } from '../utils/chatStorage';
 
 const FREQUENCY_OPTIONS = [10, 30, 60, 120];
 const UPCOMING_HOURS_OPTIONS = [3, 6, 9, 12, 24];
@@ -46,6 +47,8 @@ export default function HomePage() {
   const [tickerQueue, setTickerQueue] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const hasJoinedRef = useRef(false);
+  const activeCityRef = useRef(city);
+  const currentUsernameRef = useRef('anonymous');
 
 
   // popup for snackbar
@@ -62,6 +65,18 @@ export default function HomePage() {
   const [chatInput, setChatInput] = useState('');
   const [chatMessage, setChatMessage] = useState<ChatMessagePayload[]>([]); 
 
+
+  // get current username to save chat history
+  const currentUsername = getUsername() ?? 'anonymous';
+
+  useEffect(() => {
+    activeCityRef.current = city;
+  }, [city]);
+
+  useEffect(() => {
+    currentUsernameRef.current = currentUsername;
+  }, [currentUsername]);
+
   const showMessage = (severity: 'success' | 'error' | 'info', message: string) => {
     setTickerQueue((prev) => [...prev, message]);
 
@@ -72,6 +87,7 @@ export default function HomePage() {
     });
   };
 
+  // clear weather information when need
   const clearTickerQueue = () => {
     setTickerQueue([]);
     setMapTickerVisible(false);
@@ -136,8 +152,17 @@ export default function HomePage() {
       );
     };
 
+    // send chat and save to session storage
     const handleChatMessage = (payload: ChatMessagePayload) => {
-      setChatMessage((prev) => [...prev, payload]);
+      const usernameKey = currentUsernameRef.current;
+      const cityKey = payload.city;
+      const history = loadUserCityChat(usernameKey, cityKey);
+      const next = [...history, payload];
+      saveUserCityChat(usernameKey, cityKey, next);
+
+      if (cityKey === activeCityRef.current) {
+        setChatMessage(next);
+      }
     };
 
     const handleSubscriptionError = (payload: { message?: string }) => {
@@ -192,7 +217,7 @@ export default function HomePage() {
 
   useEffect(() => {
     clearTickerQueue();
-    setChatMessage([]);
+    setChatMessage(loadUserCityChat(currentUsername, city));
     const socket = getSocket();
     socket.emit('join-city', {
       city,
